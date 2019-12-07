@@ -1,0 +1,166 @@
+<?php
+
+/**
+ * Created by PhpStorm.
+ * User: 陈思池 <925.andrewchan@gmail.com>
+ * Time: 27/10/2017 9:07 AM
+ */
+
+namespace Cmexpro\Common\Lib\Log;
+
+use Cmexpro\Common\Lib\Config\CFG;
+use Monolog\Logger;
+use PHPUnit_Framework_TestCase;
+use Psr\Log\LoggerInterface;
+
+class LOGTest extends PHPUnit_Framework_TestCase
+{
+    public function __construct($name = null, array $data = array(), $dataName = '')
+    {
+        parent::__construct($name, $data, $dataName);
+        CFG::mergeCFG(array(
+            'log' => array(
+                'category'       => 'composer.common-lib',
+                'file_base_name' => '/tmp/logs/common-lib/',
+            ),
+        ));
+    }
+
+    public function testPrivateStaticProperty()
+    {
+        $reflectionClass = new \ReflectionClass('\Cmexpro\Common\Lib\Log\LOG');
+
+        // test private static $loggers
+        $propertyLoggers = $reflectionClass->getProperty('loggers');
+        $propertyLoggers->setAccessible(true);
+
+        $this->assertEmpty($propertyLoggers->getValue());
+
+        $propertyLoggers->setValue(array('test' => new Logger('/log/test/category')));
+        $this->assertArrayHasKey('test', $propertyLoggers->getValue());
+        $this->assertTrue($propertyLoggers->getValue()['test'] instanceof LoggerInterface);
+
+        // test private static $pid
+        $propertyPid = $reflectionClass->getProperty('pid');
+        $propertyPid->setAccessible(true);
+
+        $this->assertEmpty($propertyPid->getValue());
+
+        $pid = getmypid();
+        $propertyPid->setValue($pid);
+
+        $this->assertEquals($pid, $propertyPid->getValue());
+
+        // test private static $traceId
+        $propertyTraceId = $reflectionClass->getProperty('traceId');
+        $propertyTraceId->setAccessible(true);
+
+        $this->assertEmpty($propertyTraceId->getValue());
+
+        $traceId = getmypid() . '~' . uniqid();
+        $propertyTraceId->setValue($traceId);
+
+        $this->assertEquals($traceId, $propertyTraceId->getValue());
+    }
+
+    public function testInitTraceId()
+    {
+        LOG::initTraceId();
+
+        $reflectionClass = new \ReflectionClass('\Cmexpro\Common\Lib\Log\LOG');
+        $propertyPid = $reflectionClass->getProperty('pid');
+        $propertyPid->setAccessible(true);
+
+        $this->assertEquals(getmypid(), $propertyPid->getValue());
+
+        $propertyTraceId = $reflectionClass->getProperty('traceId');
+        $propertyTraceId->setAccessible(true);
+
+        $this->assertRegExp('/' . $propertyPid->getValue() . '~/', $propertyTraceId->getValue());
+    }
+
+    public function testGetTraceId()
+    {
+        LOG::initTraceId();
+
+        $this->assertRegExp('/' . getmypid() . '~/', LOG::getTraceId());
+
+        return LOG::getTraceId();
+    }
+
+    /**
+     * @depends testGetTraceId
+     */
+    public function testSetTraceId($traceId)
+    {
+        LOG::setTraceId($traceId);
+
+        $this->assertEquals($traceId, LOG::getTraceId());
+    }
+
+    public function testInitAndGetLogger()
+    {
+        $reflectionMethod = new \ReflectionMethod('\Cmexpro\Common\Lib\Log\LOG', 'initAndGetLogger');
+        $reflectionMethod->setAccessible(true);
+        $reflectionMethod->invoke(null, 'test_init');
+
+        $reflectionClass = new \ReflectionClass('\Cmexpro\Common\Lib\Log\LOG');
+        $propertyLoggers = $reflectionClass->getProperty('loggers');
+        $propertyLoggers->setAccessible(true);
+
+        $this->assertArrayHasKey('test_init', $propertyLoggers->getValue());
+        $this->assertTrue($propertyLoggers->getValue()['test_init'] instanceof LoggerInterface);
+    }
+
+    public function testInfo()
+    {
+        LOG::info('test info log');
+
+        $path = '/tmp/logs/common-lib/info-' . date('Y-m-d') . '.log';
+        $this->assertTrue(file_exists($path));
+        @unlink($path);
+    }
+
+    public function testError()
+    {
+        LOG::error('test error log', array('hello', 'world', 'php'));
+
+        $path = '/tmp/logs/common-lib/error-' . date('Y-m-d') . '.log';
+        $this->assertTrue(file_exists($path));
+        @unlink($path);
+    }
+
+    public function testWarning()
+    {
+        LOG::warning('test warning log');
+
+        $path = '/tmp/logs/common-lib/warning-' . date('Y-m-d') . '.log';
+        $this->assertTrue(file_exists($path));
+        @unlink($path);
+    }
+
+    public function testNotice()
+    {
+        LOG::notice('test notice log');
+
+        $path = '/tmp/logs/common-lib/notice-' . date('Y-m-d') . '.log';
+        $this->assertTrue(file_exists($path));
+        @unlink($path);
+    }
+
+    public function testDebug()
+    {
+        LOG::debug('test debug log');
+
+        $path = '/tmp/logs/common-lib/debug-' . date('Y-m-d') . '.log';
+        $this->assertTrue(file_exists($path));
+        @unlink($path);
+    }
+
+    public function tearDown()
+    {
+        @rmdir('/tmp/logs/common-lib/');
+        @rmdir('/tmp/logs/');
+        parent::tearDown(); // TODO: Change the autogenerated stub
+    }
+}

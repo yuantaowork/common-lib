@@ -1,0 +1,49 @@
+{
+  "name": "cmexpro/common-lib",
+  "description": "PHP公共类/方法",
+  "type": "library",
+  "keywords": [
+    "CFG",
+    "LOG",
+    "MsgQ",
+    "Redis"
+  ],
+  "homepage": "https://github.com/yuantaowork/cmexpro",
+  "license": "MIT",
+  "require": {
+    "php": ">=7.1",
+    "php-amqplib/php-amqplib": "^2.7",
+    "monolog/monolog": "^1.0",
+    "ext-redis": "*"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^4.8"
+  },
+  "autoload": {
+    "psr-4": {
+      "Cmexpro\\Common\\Lib\\": "src"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Cmexpro\\Common\\Lib\\": "tests"
+    }
+  },
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://packagist.phpcomposer.com"
+    },
+    {
+      "packagist.org": false
+    }
+  ],
+  "archive": {
+    "exclude": [
+      "/tests"
+    ]
+  },
+  "config": {
+    "secure-http": false
+  }
+}
