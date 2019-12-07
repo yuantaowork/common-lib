@@ -8,7 +8,7 @@
     "MsgQ",
     "Redis"
   ],
-  "homepage": "https://github.com/yuantaowork/cmexpro",
+  "homepage": "https://github.com/yuantaowork/common-lib",
   "license": "MIT",
   "require": {
     "php": ">=7.1",
